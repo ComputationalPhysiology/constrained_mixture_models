@@ -1,0 +1,198 @@
+\documentclass[twoside,12pt,a4paper]{article}
+\usepackage{exscale,times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+
+\title{Homogenized constrained mixture models for cardiac growth and remodeling}
+\author{Joakim Sundnes}
+
+\begin{document}
+
+\maketitle
+
+\section{Background}
+\begin{itemize}
+  \item We want to explore constrained mixture models for cardiac growth and remodeling. 
+  \item The framework of homogenized constrained mixture (HCM) models \cite{cyron2016homogenized,braeu2017homogenized} 
+        appears to be a good starting point. It can be viewed as a compromise between the constrained mixture models
+        and the volumetric growth framework introduced by \cite{rodriguez1994stress}.
+  \item Gebauer et al \cite{gebauer2022homogenized} present a homogenized constrained mixture models for cardiac G{\&}R, and apply 
+        it to an idealized left ventricle.
+  \item To get a better understanding of the model framework, we here present a non-growing version of the mixture model, which
+        has also been implemented and solved in FEniCS. 
+\end{itemize}
+
+\section{A non-growing constrained mixture model}
+We first consider the simplified case with no growth, where the govering equation is 
+a standard quasi-static equilibrium model for large deformations:
+\[
+\nabla\cdot P = 0,  
+\]
+Here, $P$ is the second Piola-Kirchhoff stress tensor, given by 
+\[
+P = \frac{\partial \Psi}{\partial F},  
+\]
+with $F$ being the deformation gradient and $\Psi$ a given strain energy, defined per unit volume. The material is modeled as a constrained mixture, i.e., a 
+mixture of $n$ constituents which are constrained to deform together, eliminating the need to model
+momentum exchange between the constituents. The strain energy is then given by
+\[
+\Psi = \sum_{i=0}^n \rho_0^i W^i(C_e^i) + \Psi_{vol} , 
+\]
+where $W_i$ is the strain energy per unit mass for constituent $i$, $\rho_0^i$ is the
+reference mass density of constituent $i$, and $C_e^i = (F_e^i)^TF_e^i$ is the Cauchy-Green
+deformation tensor of the elastic deformation of constituent $i$. For now, since we
+assume no growth, we have $F_e^i = F^i = F$, since the entire deformation is elastic and
+all constituents deform together. The strain energy therefore simplifies to 
+\[
+\Psi = \sum_{i=0}^n \rho_0^i W^i(C) + \Psi_{vol} , 
+\]
+with $C = F^T F$. We assume that the myocardium consists of three load bearing constituents: 
+collagen ($c$), myocytes ($m$), and a "background" constituent consisting mainly of elastin ($b$).
+For now, we include a single family of collagen fibers, aligned in the same direction as the
+myocytes. The background consitituent is assumed to be isotropic. Following 
+Holzapfel-Ogden \cite{holzapfel2009constitutive}and
+Gebauer et al \cite{gebauer2022homogenized}, we adopt the following forms of the individual strain energies:
+\begin{align*}
+  W^b(C) &= \frac{a}{2b}\exp[b (\bar{I}_1 -3)],  \\
+  W^c(C)  &= \frac{a_c}{2b_c}\exp[b_c (I_{4c} -1)^2], \\
+  W^m(C) &= W_{pas}^m + W_{act}^m, \\
+  W_{pas}^m &= \frac{a_m}{2b_m}\exp[b_m (I_{4m} -1)^2], \\ 
+  W_{act}^m &= S_a(\tau) \sqrt{I_4m} \\
+  \Psi_{vol} &= \frac{\kappa}{2}\left(J -\frac{\rho_0(s)}{\rho_0(s=0)} \right)^2
+\end{align*}
+Here, $\bar{I}_1$ is the modified first invariant of the Cauchy-Green tensor $C$, and $I_{4c},I_{4m}$ are
+the fourth pseudo-invariants defined by $I_{4c} = f_r^c C f_r^c, I_{4m} = f_r^m C f_r^m$, with $f_r^c, f_r^c$ 
+being the preferred direction of the fiber families. For now, we assume $f_r^c = f_r^m = f_0$, so 
+we have $I_{4c} = I_{4m}$. The myocyte strain energy has been split into active and passive parts, following
+(Gebauer et al 2022) and (Pezzuto and Ambrosi 2010). All material parameters are 
+chosen as in (Gebauer et al 2022). Since, for now, we assume no growth of the tissue, the 
+reference density $\rho_0$ is constant, and the volumetric energy term simplifies
+to 
+\[ 
+  \Psi_{vol} = \frac{\kappa}{2}\left(J - 1 \right)^2 ,
+\]
+with $J= \det(F)$ and $\kappa$ being a penalty parameter (bulk modulus).
+
+The model above has been implemented in FEniCS and, as expected, its behavior is similar to the standard Holzapfel-Ogden model. 
+The only advantages of the present formulation are connected to the interpretation of the model terms. We can intuitively
+change the tissue composition by changing the mass fraction, and it is easy to add collagen fiber families in arbitrary 
+directions. The same changes can be achieved in the Holzapfel-Ogden model by modifying the material parameters, but the physical 
+interpretation is less obvious. However, any real value of the models comes when adding growth and remodeling laws for 
+individual constituents, to allow the tissue composition to change in response to mechanical stimuli. This part is complicated
+by the fact that we cannot only model changes in mass fractions, but also need to consider prestretch tensors associated with 
+the growth and remodeling of each constituent, similar to the growth tensors applied in the volumetric 
+growth framework from Rodriguez et al \cite{rodriguez1994stress}.
+
+\subsection{Growth and remodeling of the mixture}
+In the original constrained mixture models \cite{humphrey2002constrained}, each constituent is continuously produced and 
+degraded. Since new material is added with a given prestretch, this turnover can lead to a change in the tissue configuration
+even if the net mass production is zero. To compute the current elastic deformation of the tissue, which determines the stress 
+and thereby the stimulus for new growth, we need to keep track of the prestretch of all added material at all previous times. 
+The impact of the prestretch of material added at time $\tau$ decays exponentially with time, and we can therefore set a cutoff
+time for how long we need to track the prestretch. In a discretized model, this bookkeeping involves 
+storing a prestretch tensor field for each constituent for a finite number of previous time steps. Although entirely manageable, 
+this complicates the computational model considerably, and motivated the introduction of a temporally homogenized 
+constrained mixture (HCM) model \cite{cyron2016homogenized}, where the influence of all previous material turnover is lumped into a single
+prestretch tensor. This framework appears to be a good compromise between the complexity of the original constrained mixture
+models and the simpler framework of volumetric growth \cite{rodriguez1994stress}.
+
+Gebauer et al \cite{gebauer2022homogenized} presents a relatively simple HCM model for cardiac tissue, to describe growth and remodeling of an 
+idealized left ventricle. The model includes the constituents listed above (myocytes, collagen, elastin), with similar
+formulations of the strain energies except for a different formulation of the active tension. 
+Myocytes and collagen are assumed to remodel over time to maintain a given stress homeostasis, with net mass production
+governed by the following law:
+\[
+\dot{\rho_0^i} = \rho_0^ik_\sigma^i \frac{\sigma^i-\sigma_h^i}{\sigma_h^i} . 
+\]
+Here, $\rho_0^i$ is the reference density of constituent $i$ (changes with time since mass is added while the reference volume 
+is unchanged), $\sigma^i$ is the Cauchy stress in the constituent's preferred direction, $\sigma_h^i$ is the homeostatic stress,
+and $k_\sigma^i$ is a growth gain factor. We also need to describe the degradation of constituent $i$, given by
+\[
+  \dot{d\rho_{0-}^i} = -\frac{\rho_0^i}{T^i},  
+\]
+where $T^i$ is the mean lifetime of deposited mass, and the mass production 
+\[
+  \dot{d\rho_{0+}^i} = \dot{\rho_0^i} - \dot{d\rho_{0-}^i} .
+\]
+
+Mocytes and collagen are modeled as one-dimensional fiber families, and in \cite{gebauer2022homogenized} 
+it is assumed incompressible remodeling and that all new mass is deposited in the fiber direction. The remodeling (prestretch) deformation tensor can 
+then be written as
+\[
+F_r^i = \lambda_r^i f_0^i \otimes f_0^i  +\frac{1}{\sqrt{\lambda_r^i}}(I-f_0^i \otimes f_0^i),
+\]
+where $\lambda_r^i$ is the remodeling stretch in the fiber direction, and is governed by an ODE (Eq (9) in Gebauer et al (2022)).
+
+Elastin is not assumed to remodel in response to mechanical stimuli, but an isochoric and rotation-free prestretch tensor is 
+still applied (?).
+
+\subsection{Motivation, project ideas and open questions}
+Why should we consider these models at all?
+\begin{itemize}
+  \item Novelty. The constrained mixture models were proposed for vascular tissue, and there's only one publication applying
+        them to cardiac tissue \cite{gebauer2022homogenized}. Almost any implementation and application of the model in a cardiac 
+        setting will be novel and publishable.
+  \item Complexity. Complexity and solver efficiency are probably the main obstacles towards more widespread of the models. 
+        Simula is well positioned to tackle this.
+  \item Fibrosis and tissue stiffness. Although fairly simplified, the models provide a mechanistic model framework for 
+        describing fibrosis in response to mechanical load or other stimuli, and the effect on the mechanical properties.
+  \item Open questions. The growth stimulus in \cite{gebauer2022homogenized} appears to be quite simple, and may be more applicable 
+        for vascular tissue than cardiac. Combining the HCM model framework with cardiac growth laws as proposed in
+        \cite{kerckhoffs2012single} or \cite{lee2016integrated} could probably form the basis for both methods- and application papers.
+  \item Comparison with the volumetric growth model and possibly the non-homogenized constrained mixture models. The study 
+        by Witzenburg and Holmes \cite{witzenburg2017comparison} could be a good framework for a comparison. They test and compare various growth
+        laws within the volumetric growth framework, and it could be interesting to do something similar using different
+        versions of constrained mixture models. 
+\end{itemize}
+
+The overall idea of the HCM model framework is quite clear from \cite{cyron2016homogenized,gebauer2022homogenized}. 
+However, some details are not fully clear (to me) from the description in the papers, and may require diving a bit 
+deeper into some of the cited references:
+\begin{itemize}
+  \item The description of the prestretch tensor for the elastin constituent is not fully clear. If elastin does not turn over,
+        I would intuitively expect this constituent to be in a constant state of stretch as the other consituents grow. Instead,
+        the authors adopt an iterative procedure introduced in \cite{mousavi2017patient} to make this constituent stress free (?).
+  \item What is the reasoning behind the isochoric remodeling of the fibers. As fibers grow longer in response to stretch, why 
+        would they also be thinner? This may be related to the model formulation, i.e., that the actual volume change is handled
+        elsewhere, or it could be a simplifying assumption. If the latter is the case it should probably be changed, 
+        in particular for the remodeling of the myocytes.
+  \item The model above, adopted from \cite{gebauer2022homogenized}, includes a single family of collagen fibers. This is 
+        probably ok for now, but may have to be extended later. Not clear how many fiber families it is natural to include? 
+        Maybe two, aligned in the fiber- and sheet direction?
+\end{itemize}
+
+Possible first steps:
+\begin{itemize}
+  \item Since the unit cube model presented above is completely homogenous, it can be simplified to a 0D balance equation which 
+        does not require solving with the finite element method. A 0D model may be a good starting point for introducing 
+        growth in the model and explore some initial model choices.
+  \item When the 0D model is working, implement a 3D unit cube model with growth and remodeling, and verify that the two 
+        give the same results.
+  \item Test the model predictions for the simple case proposed in \cite{witzenburg2017comparison}? Possible publication.
+  \item Explore growth laws and mechanical quantities that drive growth, consider for instance \cite{lee2016integrated}.
+  \item Expand to more realistic geometries. 
+\end{itemize}
+
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{./growth_remodeling}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

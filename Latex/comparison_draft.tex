@@ -1,0 +1,103 @@
+\documentclass[twoside,12pt,a4paper]{article}
+\usepackage{exscale,times}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+
+\title{A comparison of models for cardiac growth and remodeling}
+\author{Joakim Sundnes}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Soft tissue growth and remodeling has been modeled in a number of different frameworks,
+including for instance:
+\begin{itemize}
+  \item The volumetric growth model introduced by Rodriguez et al (1994).
+  \item Constrained mixture models, introduced by Humphrey and Rajagopal (2002).
+  \item Homogenized constrained mixture models, proposed by Cyron et al (2016).
+\end{itemize}
+These frameworks vary considerably in terms of computational complexity and (potential) 
+biological detail. We will here compare the different models for the simple case of a 
+homogeneous unit cube, to explore the differences in more detail.
+
+
+\section{Mechanical model problem}
+The starting point is a standard, quasi-static mechanics model of active cardiac tissue:
+\begin{align}
+\nabla\cdot(FS) &= 0,  \label{elasticity_1} \\
+S &= S^p + S^a,  \label{stress_split} \\
+%\Psi &= \frac{1}{2}K(e^W-1) \label{strain_energy1} \\
+%W &= b_{ff}E_{11}^2+b_{xx}(E_{22}^2+E_{33}^2+E_{23}^2)
+%+b_{fx}(2E_{12}^2+2E_{13}^2). \label{strain_energy2} \\
+S^p &= {\partial\Psi\over\partial E}+pC^{-1}, \\
+S^a &= J F^{-1}\sigma^a(s,\lambda,\dot{\lambda})F^{-T}, \label{active_s}
+\end{align}
+Here, \eqref{elasticity_1} describes mechanical equilibrium, 
+with $F$ being the deformation gradient and $S$ the the second Piola-Kirchoff
+stress tensor, which is defined by constitutive relations \eqref{stress_split}-\eqref{active_s}.
+Furthermore, $J=det(F)$, (required to satisfy $J=1$ because of incompressibility), 
+$W$ is the strain energy function which defines the passive material properties of the 
+tissue, $C$ is the right Cauchy-Green tensor, $p$ is the hydrostatic pressure, 
+%$E$ is the Green-Lagrange strain tensor, 
+and $\sigma^a$ is the active part of the Cauchy stress tensor. In
+local fiber coordinates we have $\sigma^a = \mbox{diag}(T_a,\eta
+T_a, \eta T_a)$, where $\eta$ is a constant and $T_a$ is a prescribed active tension. 
+In realistic models $T_a$ depends on the deformation state, but for simplicity we will first 
+assume that it is a prescribed function of time only. 
+
+The equations must be complemented with appropriate boundary conditions. We want to derive 
+the simplest possible model, and consider a mechanics problem defined on the unit cube. 
+We apply the following combination of Dirichlet and Neumann boundary conditions
+\begin{align*}
+u_X & = 0 \mbox{ for  } X = 0, \\
+FS \cdot n &= \boldsymbol{T} \mbox{ for  } X = 1, \\
+FS \cdot n &= 0 \mbox{ for  } Y = 0, Y = 1, Z = 0 \mbox{ or } Z = 1, \\
+\end{align*}
+plus additional necessary constraints to avoid rigid body motion. Here $u$ is the displacement, 
+$u_X$ is the displacement in the $X$-direction, and $X,Y,Z$ are the coordinates of the undeformed
+reference configuration. These conditions define a cube that is held fixed at one end, loaded with 
+a normal load $T$ at the other end, and unloaded in the transverse directions. 
+
+\subsection{A mixture-based material model}
+It remains to specify 
+
+
+
+
+
+
+
+
+
+If we further assume that the cube is homogeneous, with fibers aligned in the $X$-direction, and
+that the prescribed active stress is homogeneous, the boundary conditions above will lead to a 
+uniform deformation field with a diagonal deformation gradient with components
+$F_{11} = \lambda, F_{22}=F_{33} = \sqrt{1/\lambda}$.
+The right Cauchy-Green tensor $C$ and the Green-Lagrange tensor
+$E$ will also be diagonal, with components $C_{11} = \lambda^2 , 
+C_{22} =C_{33} = 1/\lambda,  
+E_{11} = \frac{1}{2}(\lambda^2 - 1)$, and 
+$E_{22} = E_{33} = \frac{1}{2}(\frac{1}{\lambda}-1).$\\
+
+Inserting these expressions into the strain energy function above
+defines the passive stress in terms of $lambda,p$;
+\begin{align}
+S_{11} &= \frac{\partial\Psi}{\partial E_{11}}+p\{ C^{-1}\}_{11}  =
+\frac{1}{2}Kb_{ff}(\lambda^2-1)e^W + p\frac{1}{\lambda^2} \nonumber\\
+S_{22} = S_{33} &=  \frac{\partial\Psi}{\partial E_{22}}+p\{ C^{-1}\}_{22} 
+= \frac{1}{2}K b_{xx}(1/\lambda -1)e^W + p\lambda .\nonumber  
+\end{align}
+Since the slab is unloaded, and we have disregarded body forces and inertia effects, 
+the active and passive stresses must balance in all points. Eq \eqref{elasticity_1}
+may therefore be replaced by $S^a + S^p = 0.$ 
+
+\section{Growth and remodeling of the unit cube}
+In this section we will extend the model from above 
+
+
+
+
+\end{document}
