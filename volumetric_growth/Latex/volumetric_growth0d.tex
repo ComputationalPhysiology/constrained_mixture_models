@@ -77,6 +77,13 @@ set points $E_{ff,set}, E_{cross,set}$ for the strains $E_{ff}, E_{cross,max}$ d
   s_l &= \max(E_{ff}) - E_{ff,set}, \\
   s_t &= \min(E_{cross,max}) - E_{cross,set} .
 \end{align*}
+Here, it is important to note that the growth stimuli are computed from the \emph{elastic} component of the strain,
+i.e., the quantities $E_{ff}, E_{cross,max}$ are computed from $F_e$ and not total deformation gradient $F$. 
+Specifically, in the context of volumetric growth we have the relevant stretch and strain tensors defined by:
+\begin{align*}
+  C &= F_e^TF_e ,\\
+  E &= 1/2(C - I) .
+\end{align*}
 The growth tensor $F_g$ is then defined in terms of incremental growth tensors $F_{g,i}$, which represent the
 growth over a single growth step. The incremental growth tensor is given  
 by $F_{g,i}= diag(F_{g,i,ff}, F_{g,i,cross}, F_{g,i,cross})$, with the components 
