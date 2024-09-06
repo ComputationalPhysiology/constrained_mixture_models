@@ -95,8 +95,6 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
     #cumulative growth tensor components:
     F_g_f_tot = np.ones_like(time)
     F_g_c_tot = np.ones_like(time)
-    
-
 
     #initial elastic strains
     E_f = 0.5 * (lmbda**2 - 1)
@@ -108,8 +106,8 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
         #growth stimuli:
         sl = E_f - E_f_set
         st = E_c - E_c_set
+        print(st) 
         
-        print(sl, st)
         #incremental and cumulative growth tensors:
         F_g_i_f = incr_fiber_growth(sl, dt_growth, F_g_f_tot[i])
         F_g_i_c = incr_trans_growth(st, dt_growth, F_g_c_tot[i])
@@ -120,7 +118,7 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
 
         #update elastic strains E_f and E_c:
         lmbda_e_f = lmbda/F_g_f_tot[i+1]
-        lmbda_e_c = (1 / np.sqrt(lmbda)) / F_g_c_tot[i + 1]  
+        lmbda_e_c = np.sqrt(F_g_f_tot[i+1] / lmbda) / F_g_c_tot[i + 1]  
 
         E_f = 0.5 * (lmbda_e_f**2 - 1)
         E_c = 0.5 * (lmbda_e_c**2 - 1)
@@ -131,8 +129,6 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
     plt.plot(time, np.ones_like(time) * lmbda, ':')
     plt.plot(time, np.ones_like(time) * 1/np.sqrt(lmbda), ':')
     
-
-
     plt.title(f'Uniaxial stretch, $\lambda$ = {lmbda}')
     plt.xlabel('Time [days]')
     plt.ylabel('Cumulative growth tensor components')
@@ -142,7 +138,7 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
 
 
     
-grow_unit_cube(lmbda = 1.1 , T = 100, N = 1000, E_f_set = 0, E_c_set = 0)
+grow_unit_cube(lmbda = 1.1 , T = 100, N = 5000, E_f_set = 0, E_c_set = 0)
 
 
 

@@ -73,10 +73,10 @@ $F_e = F F_g^{-1} = diag(1/\lambda_g, 1, 1)$, which will typically result in a n
 The growth law proposed by Kerckhoffs et al is formulated in terms of the growth stimuli $s_l$ and $s_t$, 
 which stimulate longitudinal (fiber) and transversal growth, respectively. These are based on pre-defined
 set points $E_{ff,set}, E_{cross,set}$ for the strains $E_{ff}, E_{cross,max}$ defined above:
-\begin{align*}
-  s_l &= \max(E_{ff}) - E_{ff,set}, \\
-  s_t &= \min(E_{cross,max}) - E_{cross,set} .
-\end{align*}
+\begin{align}
+  s_l &= \max(E_{ff}) - E_{ff,set}, \label{stim0}\\
+  s_t &= \min(E_{cross,max}) - E_{cross,set} . \label{stim1}
+\end{align}
 Here, it is important to note that the growth stimuli are computed from the \emph{elastic} component of the strain,
 i.e., the quantities $E_{ff}, E_{cross,max}$ are computed from $F_e$ and not total deformation gradient $F$. 
 Specifically, in the context of volumetric growth we have the relevant stretch and strain tensors defined by:
@@ -115,27 +115,64 @@ and all other parameters are as given in Table 2 of Kerckhoffs et al.
 \end{figure}
 
 \subsubsection{Growth of the unit cube}
+\emph{This version of the model contains a bug, and the corresponding figure in \ref{fig:cum_growth_tensors_old} is probably 
+not correct. See below for a corrected version.}
+We now return to the unit cube subjected to uni-axial stretch $\lambda$, as defined above. With $\lambda > 1$, the cube 
+should grow in the longitudinal direction and shrink in the transverse direction, and the growth should converge towards
+an equilibrium where the elastic strain components $E_{ff}$ and $E_{cross,max}$ are equal to the set point values.
+Figure \ref{fig:cum_growth_tensors_old} shows the fiber and transverse growth tensor components as functions of time, 
+measured in days, for uniaxial constant stretch $\lambda = 1.1$, and set points $E_{ff, set} = E_{cross,set} = 0$. 
+For this case the growth tensor $F_g$ should converge towards the overall tensor $F$, for which $F_e = I$ and 
+$E_{ff} = E_{cross,max} = 0$.  In the limit we should have $F_g = F = diag(\lambda, \sqrt{1/\lambda}, sqrt{1/\lambda})$. 
+\ \\ \ \\
+\emph{Note 1: While both curves seem to converge towards the right values, the longitudinal growth curve is extremely steep at 
+the start. This looks a bit strange, and it is worth double-checking the code and the parameters to confirm that this is correct.
+However, judging from the parameters in the original paper it may be correct. The maximal growth ($f_{ff,max}$) is 0.3 (day$^{-1}$), 
+and the value of the stimulus that gives 50\% of maximal growth ($s_{l,50}$) is 0.06. So, only 6\% longitudinal strain should give a 
+longitudinal growth of about 0.15 per day.}
+\ \\ \ \\
+\emph{Note 2: There seems to be a bug in the derivation above. It is reasonable to assume that the elastic component
+of the deformation is incompressible, but the growth component can lead to a change in volume. The assumptions above, 
+and in particular that $F_g \rightarrow diag(\lambda, \sqrt{1/\lambda}, \sqrt{1/\lambda})$ in the limit, 
+imply that the total deformation and the growth deformation are also volume preserving. Relaxing this assumption leads
+to a slightly different problem formulation and a slightly different calculation of $F_e$. See below.}
+
+\subsubsection{Growth of the unit cube - corrected version} 
 We now return to the unit cube subjected to uni-axial stretch $\lambda$, as defined above. With $\lambda > 1$, the cube 
 should grow in the longitudinal direction and shrink in the transverse direction, and the growth should converge towards
 an equilibrium where the elastic strain components $E_{ff}$ and $E_{cross,max}$ are equal to the set point values.
 Figure \ref{fig:cum_growth_tensors} shows the fiber and transverse growth tensor components as functions of time, 
 measured in days, for uniaxial constant stretch $\lambda = 1.1$, and set points $E_{ff, set} = E_{cross,set} = 0$. 
 For this case the growth tensor $F_g$ should converge towards the overall tensor $F$, for which $F_e = I$ and 
-$E_{ff} = E_{cross,max} = 0$.  In the limit we should have $F_g = F = diag(\lambda, \sqrt{1/\lambda}, sqrt{1/\lambda})$. 
+$E_{ff} = E_{cross,max} = 0$. 
 
+Initially we have $F_g = I$ and therefore $F_e = F = diag(\lambda, \sqrt{1/\lambda}, \sqrt{1/\lambda})$ from 
+the assumption that the elastic deformation is volume-preserving. In subsequent steps the condition
+$det(F_e) = 1$ still holds, but since $F_g \neq I$ the calculation of $F_e$ becomes slightly more complicated.
+The overall deformation in the longitudinal direction is prescribed by the boundary condition, so we have
+$F_{11} = \lambda$ and $F_{e,11} = \lambda / F_{g,11}$, where $F_{g,11}$ first diagonal component of the 
+cumulative growth tensor, as defined above. Since $det(F_e) = 1$ and $F_{e,22} = F_{e,33}$ we must have
+\[
+F_{e,22} = F_{e,33} = \frac{1}{\sqrt{F_{e,11}}} = \sqrt{F_{g,11}/ \lambda}
+\]
 
-Note: While both curves seem to converge towards the right values, the longitudinal growth curve is extremely steep at 
-the start. This looks a bit strange, and it is worth double-checking the code and the parameters to confirm that this is correct.
-However, judging from the parameters in the original paper it may be correct. The maximal growth ($f_{ff,max}$) is 0.3 (day$^{-1}$), 
-and the value of the stimulus that gives 50\% of maximal growth ($s_{l,50}$) is 0.06. So, only 6\% longitudinal strain should give a 
-longitudinal growth of about 0.15 per day. 
+\begin{figure}
+  \centerline{
+    \includegraphics{figs/cumulative_growth_old}
+  }
+\caption{The cumulative growth tensor components $F_{g,i,ff}, F_{g,i,cc}$ as functions of time, based on
+the old and probably wrong model derivation.}
+\label{fig:cum_growth_tensors_old}
+\end{figure}
+
 
 \begin{figure}
   \centerline{
     \includegraphics{figs/cumulative_growth}
   }
-\caption{The cumulative growth tensor components $F_{g,i,ff}, F_{g,i,cc}$ as functions of time.}
-\label{fig:cum_growth_tensors}
+\caption{The cumulative growth tensor components $F_{g,i,ff}, F_{g,i,cc}$ as functions of time, using the corrected model.}
+\label{fig:cum_growth_tensors_old}
 \end{figure}
+
 
 \end{document}
