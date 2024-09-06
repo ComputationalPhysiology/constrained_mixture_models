@@ -117,8 +117,8 @@ def grow_unit_cube(lmbda, T, N, E_f_set = 0, E_c_set = 0):
         F_g_c_tot[i + 1] = F_g_c_tot[i] * F_g_i_c
 
         #update elastic strains E_f and E_c:
-        lmbda_e_f = lmbda/F_g_f_tot[i+1]
-        lmbda_e_c = np.sqrt(F_g_f_tot[i+1] / lmbda) / F_g_c_tot[i + 1]  
+        lmbda_e_f = lmbda / F_g_f_tot[i+1]
+        lmbda_e_c = np.sqrt(1 / lmbda_e_f) 
 
         E_f = 0.5 * (lmbda_e_f**2 - 1)
         E_c = 0.5 * (lmbda_e_c**2 - 1)
