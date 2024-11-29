@@ -1,0 +1,123 @@
+%------------------------------------------------------------------------------
+\documentclass[a4paper,10pt]{article}
+%------------------------------------------------------------------------------
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+% Some math operators
+\DeclareMathOperator{\Div}{div}
+\DeclareMathOperator{\Grad}{grad}
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\foralls}{\forall\,}
+\newcommand{\ddt}[1]{{#1}_t}
+\newcommand{\dx}{\dif{}x}
+\newcommand{\ds}{\dif{}s}
+\newcommand{\dS}{\dif{}S}
+\newcommand{\tr}{\mbox{tr}}
+\newcommand{\eps}{\epsilon}
+
+\begin{document}
+\section{Growth laws formulated as ODEs}
+It is common to write growth laws in the form of one or more ODEs, where growth deformation is driven by a deviation
+from a set point. Considering the simple case of isotropic volume growth, the growth tensor $F_g$ can be written as
+\begin{equation}
+F_g = \left(\frac{V}{V_0}\right)^{1/3} I,
+\label{growth0}\end{equation}
+where $V_0$ and $V$ are local tissue volumes before and after growth, respectively, and $I$ is the identity. 
+A growth law describing the volume change can look like 
+\begin{equation}
+\frac{dV}{dt} = \beta V (s-s_{set}) ,
+\label{ODE0}\end{equation}
+where $\beta$ is a constant (growth rate factor), $s$ is the quantity driving the growth, typically computed from 
+local strain or stress, $s_{set}$ is the homeostatic set point for this quantity, and $s-s_{set}$ represents
+the growth stimulus \cite{Kroon2009BMM}. 
+
+More complex growth laws derived to describe cardiac growth are often formulated in terms of algebraic 
+relations relating an incremental growth tensor directly to the stimulus, bypassing the ODE formulation above. 
+One relevant example is the growth law from \cite{Kerckhoffs2012MRC}, which defines the
+incremental growth tensor as a diagonal tensor in the fiber coordinate system;
+$F_{g,i}= diag(F_{g,i,ff}, F_{g,i,cross}, F_{g,i,cross})$, with the components 
+$F_{g,i,ff}, F_{g,i,cross}$ defined by eqs (8) and (9) in \cite{Kerckhoffs2012MRC}. 
+
+We want to explore the relation between the two formulations of growth laws, and in particular
+to determine if the incremental growth law in \cite{Kerckhoffs2012MRC} can be derived 
+from an ODE formulation such as \eqref{ODE0}. To do this, we first consider a simple forward
+discretization of \eqref{ODE0}:
+\[
+\frac{V_{n+1} - V_{n}}{\Delta t} = \beta V_n (s_n-s_{set}),
+\]
+where $V_n, s_n$ are the volume and the stimulus, respectively, at time step $n$. From this, we
+get
+\[
+V_{n+1} = V_n (1 + \Delta t \beta (s_n-s_{set}))
+\]
+and we can insert into \eqref{growth0} to get
+\[
+F_{g,n+1} = \left(\frac{V_n}{V_0}(1 + \Delta t \beta (s_n-s_{set}))\right)^{1/3} I = F_{g,i} F_{g,n},
+\]
+where we have defined $F_{g,n}$ as the growth tensor at step $n$, and the incremental growth tensor $F_{g,i}$ as
+\[
+  F_{g,i} = (1 + \Delta t \beta (s_n-s_{set})) I .
+\]
+
+Now, consider a more general version of the growth tensor in \eqref{growth0}, describing transversely isotropic
+growth; $F_{g}= diag(F_{g,ff}, F_{g,cross}, F_{g,cross})$. 
+The individual components $F_{g,ff}, F_{g,cross}$ are governed by ODEs
+\begin{align}
+  \frac{d F_{g,ff}}{dt} &= \begin{cases}
+    k_\text{ff} F_{g,ff} \frac{f_\text{ff,max}}{1 + \exp(-f_f(s_l - s_{l,50}))}, & s_l \geq 0 \\
+    k_\text{ff} F_{g,ff} \frac{-f_\text{ff,max}}{1 + \exp(f_f(s_l + s_{l,50}))}, & s_l < 0
+    \end{cases} \label{kerckhoffs_ode0}\\
+    \frac{d F_{g,cross}}{dt} &=
+\begin{cases}
+  F_{g,cross} \sqrt{k_\text{cc}\frac{f_\text{cc,max} }{1 + \exp(-c_f(s_t - s_{t,50}))}}, & s_t \geq 0 \\
+  F_{g,cross} \sqrt{k_\text{cc} \frac{-f_\text{cc,max}}{1 + \exp(c_f(s_t + s_{t,50}))}}, & s_t < 0
+\end{cases}, \label{kerckhoffs_ode1}
+\end{align}
+where the right-hand sides are adapted from \cite{Kerckhoffs2012MRC}.
+Here, $s_l, s_t$ are
+stimuli for growth in the longitudinal and transverse direction, respectively. Both are computed
+as deviations from given set points (see eqs (5)-(7) in \cite{Kerckhoffs2012MRC}), similar to the 
+stimulus $s-s_{set}$ in the model above. The scaling factors
+$k_\text{ff},k_\text{cc}$ are defined in (11)-(12) in \cite{Kerckhoffs2012MRC}), and are effectively 
+enforcing hard limits on the cumulative tissue growth. 
+
+We can discretize \eqref{kerckhoffs_ode0}-\eqref{kerckhoffs_ode1} with an explicit scheme, in the same way as we did for the
+simpler growth law, to get
+\begin{align}
+  \frac{F_{g,ff}^{n+1} - F_{g,ff}^{n}}{\Delta t} &= \begin{cases}
+    k_\text{ff} F_{g,ff}^n \frac{f_\text{ff,max} }{1 + \exp(-f_f(s_l^n - s_{l,50}))}, & s_l \geq 0 \\
+    k_\text{ff} F_{g,ff}^n \frac{-f_\text{ff,max} }{1 + \exp(f_f(s_l^n + s_{l,50}))}, & s_l < 0
+    \end{cases} \label{kerckhoffs_disc0}\\
+    \frac{d F_{g,cross}^{n+1}- F_{g,cross}^n}{\Delta t} &=
+\begin{cases}
+  F_{g,cross}^n \sqrt{k_\text{cc} \frac{f_\text{cc,max}  }{1 + \exp(-c_f(s_t^n - s_{t,50}))}}, & s_t \geq 0 \\
+  F_{g,cross}^n \sqrt{k_\text{cc} \frac{-f_\text{cc,max} }{1 + \exp(c_f(s_t^n + s_{t,50}))}}, & s_t < 0
+\end{cases}, \label{kerckhoffs_disc1}
+\end{align}
+and then
+\begin{align}
+  F_{g,ff}^{n+1} &= \begin{cases}
+    F_{g,ff}^n (k_\text{ff} \frac{f_\text{ff,max} \Delta t}{1 + \exp(-f_f(s_l^n - s_{l,50}))} + 1), & s_l \geq 0 \\
+    F_{g,ff}^n (k_\text{ff} \frac{-f_\text{ff,max} \Delta t}{1 + \exp(f_f(s_l^n + s_{l,50}))} + 1), & s_l < 0
+    \end{cases} \label{kerckhoffs_inc0}\\
+    F_{g,cross}^{n+1} &=
+\begin{cases}
+  F_{g,cross}^n (\sqrt{k_\text{cc} \frac{f_\text{cc,max} \Delta t }{1 + \exp(-c_f(s_t^n - s_{t,50}))}}+1), & s_t \geq 0 \\
+  F_{g,cross}^n (\sqrt{k_\text{cc}\frac{-f_\text{cc,max}\Delta t }{1 + \exp(c_f(s_t^n + s_{t,50}))}}+ 1), & s_t < 0
+\end{cases}. \label{kerckhoffs_inc1}
+\end{align}
+This last formulation can be written as
+\begin{align}
+  F_{g,ff}^{n+1} &= F_{g,ff}^n F_{g,ff,i},\\
+  F_{g,cross}^{n+1} &= F_{g,cross}^n F_{g,cross,i},
+\end{align}
+with the incremental growth tensors $F_{g,ff,i}, F_{g,cross,i}$ defined as in \cite{Kerckhoffs2012MRC}. 
+
+\bibliographystyle{plain}
+\bibliography{./references}
+
+\end{document}
