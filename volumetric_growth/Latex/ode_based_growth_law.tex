@@ -106,8 +106,8 @@ and then
     \end{cases} \label{kerckhoffs_inc0}\\
     F_{g,cross}^{n+1} &=
 \begin{cases}
-  F_{g,cross}^n (\sqrt{k_\text{cc} \frac{f_\text{cc,max} \Delta t }{1 + \exp(-c_f(s_t^n - s_{t,50}))}}+1), & s_t \geq 0 \\
-  F_{g,cross}^n (\sqrt{k_\text{cc}\frac{-f_\text{cc,max}\Delta t }{1 + \exp(c_f(s_t^n + s_{t,50}))}}+ 1), & s_t < 0
+  F_{g,cross}^n (\Delta t \sqrt{k_\text{cc} \frac{f_\text{cc,max} }{1 + \exp(-c_f(s_t^n - s_{t,50}))}}+1), & s_t \geq 0 \\
+  F_{g,cross}^n (\Delta t \sqrt{k_\text{cc}\frac{-f_\text{cc,max}}{1 + \exp(c_f(s_t^n + s_{t,50}))}}+ 1), & s_t < 0
 \end{cases}. \label{kerckhoffs_inc1}
 \end{align}
 This last formulation can be written as
@@ -115,7 +115,44 @@ This last formulation can be written as
   F_{g,ff}^{n+1} &= F_{g,ff}^n F_{g,ff,i},\\
   F_{g,cross}^{n+1} &= F_{g,cross}^n F_{g,cross,i},
 \end{align}
-with the incremental growth tensors $F_{g,ff,i}, F_{g,cross,i}$ defined as in \cite{Kerckhoffs2012MRC}. 
+where the incremental growth tensor $F_{g,ff,i}$ is identical to the one in \cite{Kerckhoffs2012MRC},
+but $F_{g,cross,i}$ is slightly different. 
+
+\section{Solving the ODE-based growth model for a unit cube}
+Now, consider a unit cube with fibers aligned in the $x$-direction. One side of the cube, for $x=0$, is 
+restricted from moving in the $x$-direction. The opposite side, $x=1$, is subjected to a uniform
+displacement $u_0 > 0$. The remaining four sides of the cube are unloaded, i.e., homogenous 
+Neumann conditions. We also apply (minimal) boundary conditions to eliminate rigid body motion, and assume
+that the material is fully incompressible. 
+
+These choices give rise to a uniform deformation field and a diagonal deformation 
+gradient. Before any growth occurs, the components of $F$ are $F_{11} = \lambda = 1+u_0, F_{22}=F_{33} = \sqrt{1/\lambda}$,
+with corresponding right Cauchy-Green ($C$) and Green-Lagrange ($E$) tensor components 
+$C_{11} = \lambda^2 ,C_{22} =C_{33} = 1/\lambda, E_{11} = \frac{1}{2}(\lambda^2 - 1)$,
+$E_{22} = E_{33} = \frac{1}{2}(\frac{1}{\lambda}-1).$ After growth has started, we have
+$F_{11} = \lambda$ and $F_{e,11} = \lambda / F_{g,11}$, and from the assumption that the
+elastic deformation is incompressible we have 
+\[
+F_{e,22} = F_{e,33} = \frac{1}{\sqrt{F_{e,11}}} = \sqrt{F_{g,11}/ \lambda} .
+\]
+These components of the elastic deformation gradient are used in the strain based growth model, see 
+\cite{Kerckhoffs2012MRC}, where fiber growth is driven by maximum fiber strain and transverse growth
+by the maximal principal strain in the transverse plane. With the simple 
+deformation state given above, the elastic fiber strain\footnote{For simplicity of the notation we skip the subscript $e$ for the strain tensor $E$, although this is
+calculated from the elastic deformation gradient $F_e$.} 
+is given by
+\[
+  E_{ff} = E_{11} = \frac{1}{2}((\lambda/F_{g,11})^2 - 1),
+\]
+and the maximum principal strain $E_{cross,max}$
+is given by
+\[
+  E_{cross,max} = E_{22} = E_{33} =  \frac{1}{2}(F_{g,11}/ \lambda-1).
+\]
+
+With these expressions in place we can solve \eqref{kerckhoffs_ode0}-\eqref{kerckhoffs_ode1} for the
+growth tensor components 
+
 
 \bibliographystyle{plain}
 \bibliography{./references}
